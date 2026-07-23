@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} | Django Blog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <a href="{% url 'blog:post_list' %}" class="btn btn-sm btn-outline-secondary mb-4 text-white">&larr; Ro'yxatga qaytish</a>
+        
+        <article class="card glass-card p-4 p-md-5 text-white border-0">
+            <header class="mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                <h1 class="fw-bold mb-3">{{ post.title }}</h1>
+                <div class="d-flex align-items-center gap-3 text-secondary fs-6">
+                    <span>Muallif: <strong class="text-white">{{ post.author.username }}</strong></span>
+                    <span>&bull;</span>
+                    <span>Sana: {{ post.created_at|date:"d-F, Y | H:i" }}</span>
+                </div>
+            </header>
+
+            <div class="post-content fs-5 lh-lg text-light">
+                {{ post.content|linebreaks }}
+            </div>
+        </article>
+    </div>
+</div>
+{% endblock %}

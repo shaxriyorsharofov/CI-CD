@@ -1,0 +1,84 @@
+# ==============================================================================
+# Django Blog uchun To'liq CI/CD Pipeline (GitHub Actions Workflows)
+# ==============================================================================
+# Ushbu fayl har safar 'main' tarmog'iga kod yuklanganda (push) yoki Pull Request
+# yaratilganda avtomatik ravishda CI (Integration) va CD (Deployment) jarayonlarini
+# ishga tushiradi.
+# ==============================================================================
+
+name: Django Blog CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1-BOSQICH: CONTINUOUS INTEGRATION (CI)
+  # Kod sifatini tekshirish, linting va avtomatik unit testlarni o'tkazish
+  # ----------------------------------------------------------------------------
+  continuous-integration:
+    name: 🧪 CI (Linting & Unit Testing)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Kodni GitHub repozitoriydan yuklab olish
+        uses: actions/checkout@v4
+
+      - name: 🐍 Python 3.12 muhitini sozlash
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 Zarur kutubxonalarni (dependencies) o'rnatish
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🔍 Flake8 orqali kod stilini tekshirish (Linting)
+        run: |
+          # Kod sintaksisi va PEP8 standartiga mosligini tekshiradi
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+
+      - name: 🚀 Django Avtomatik Unit Testlarini o'tkazish
+        env:
+          SECRET_KEY: 'ci-testing-secret-key-12345'
+          DEBUG: 'True'
+        run: |
+          python manage.py test
+
+  # ----------------------------------------------------------------------------
+  # 2-BOSQICH: CONTINUOUS DEPLOYMENT (CD)
+  # Docker obrazini yaratish va serverga/kontreynyerga joylashtirishni test qilish
+  # (Faqat CI muvaffaqiyatli o'tgandan keyin ishlaydi)
+  # ----------------------------------------------------------------------------
+  continuous-deployment:
+    name: 🐳 CD (Docker Build & Deployment)
+    runs-on: ubuntu-latest
+    needs: continuous-integration # CI muvaffaqiyatli tugashi shart!
+
+    steps:
+      - name: 📥 Kodni qayta yuklab olish
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Docker Buildx muhitini sozlash
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔨 Docker obrazini build qilish
+        run: |
+          docker build -t django-blog-app:latest .
+
+      - name: 🧪 Local Docker konteynerini sinov tariqasida ishga tushirish (CD Test)
+        run: |
+          docker run -d --name test_app -p 8000:8000 django-blog-app:latest
+          sleep 5
+          docker ps | grep test_app
+          docker stop test_app && docker rm test_app
+
+      - name: 📢 Deployment Muvaffaqiyatli Yakunlandi
+        run: |
+          echo "✅ CI/CD Jarayoni omadli yakunlandi! Kod production deploy uchun tayyor."
