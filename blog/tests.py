@@ -29,7 +29,7 @@ class BlogModelAndViewsTestCase(TestCase):
 
     def test_post_creation(self) -> None:
         """Post modelida maqola to'g'ri saqlanishi va slug avto-generatsiyasini tekshiradi."""
-        self.assertEqual(self.post.title, 'Test Maqola Sarlavhasi')
+        self.assertEqual(self.post.title, 'Test Maqola Sarlavhasi1')
         self.assertEqual(self.post.slug, 'test-maqola-sarlavhasi')
         self.assertEqual(str(self.post), 'Test Maqola Sarlavhasi')
         self.assertEqual(self.post.status, 'published')
